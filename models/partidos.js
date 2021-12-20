@@ -27,6 +27,8 @@ const Partido = sequelize.define('partidos', {
         type: DataTypes.STRING,
         allowNull: false
     }
+}, {
+    timestamps: false
 })
 
 module.exports = Partido

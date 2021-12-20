@@ -12,8 +12,13 @@ const crearTorneo = async(req = request, res = response) =>{
             }
         })
         let partidos = []
+        let mensaje= ``
         for(let i = 0; i < 7; i++){
             let tmpTeams = [...teams]
+            mensaje += `
+            =====================
+            Week ${i+1}
+            =====================`
             while(tmpTeams.length > 0){
                 const partidoId = v4()
 
@@ -26,33 +31,39 @@ const crearTorneo = async(req = request, res = response) =>{
 
                 let team1Score = Math.floor(Math.random() * 6)
                 let team2Score = Math.floor(Math.random() * 6)
-                console.log(team1Score, team2Score)
 
-                let winner = (team1Score > team2Score) ? '1': (team1Score < team2Score) ? '2' : '0'
+                mensaje += `\n${team1.name} vs ${team2.name}: ${team1Score} - ${team2Score}`
 
-                if(winner !== '0'){
-                    teams.find((s) => s.id === (winner === '1') ? team1.id : team2.id).wins++
+                let winnerTeam = (team1Score > team2Score) ? team1: (team1Score < team2Score) ? team2 : null
+
+                if(winnerTeam){
+                    teams.find((s) => s.id === winnerTeam.id).wins++
                 }
 
-                await Partidos.create({
+                let partido = await Partidos.create({
                     id: partidoId,
                     teamone: team1.id,
                     scoreone: team1Score,
                     teamtwo: team2.id,
-                    score: team2Score,
-                    result: winner
+                    scoretwo: team2Score,
+                    result: (winnerTeam) ? (winnerTeam.id === team1.id) ? '1' : '2' : '0'
                 })
 
             }
         }
+
+        mensaje += `
+        ===============
+        Total Wins Results
+        ===============
+        `
+        teams.forEach((t) => mensaje += `\n${t.name} - ${t.wins}`)
         
-        return res.status(200).json({
-            teams
-        })
-    } catch(err){
+        return res.status(200).send(mensaje)
+    } catch(error){
         return res.status(500).json({
             msg: 'Ocurrio un error interno',
-            err
+            error
         })
     }
 }
